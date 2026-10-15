@@ -31,13 +31,39 @@ public:
         for(size_t i = 1; i<totalBlocks; i++)
         {
             FreeNode* nextNode = reinterpret_cast<FreeNode*>(memoryBlock + (i*blockSize));
+            current->next = nextNode;
+            current = nextNode;
         }
 
+        current->next = nullptr;
     }
 
     ~MemoryPool()
     {
         delete[] memoryBlock;
+    }
+
+    void* allocate()
+    {
+        if(freeListHead == nullptr)
+        {
+            cerr<<"Memory Pool out of Memory!" << endl;
+            return nullptr;
+        }
+
+        FreeNode* allocatedBlock = freeListHead;
+        freeListHead = freeListHead->next;
+
+        return reinterpret_cast<void*>(allocatedBlock);
+    }
+
+    void deallocate(void* ptr)
+    {
+        if (ptr == nullptr) return;
+
+        FreeNode* nodeToReturn = static_cast<FreeNode*>(ptr);
+        nodeToReturn->next = freeListHead;
+        freeListHead = nodeToReturn;
     }
 };
 
